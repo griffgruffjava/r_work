@@ -238,3 +238,13 @@ for (k in 1:10) {
   pcorr[k]=100*sum(fgl$type==pred)/n
 }
 pcorr
+
+
+
+######
+######  Decision Trees 
+######  session 3 - Dataming Techniques
+######  - Wisconsin Breast Cancer dataset
+######
+######
+
