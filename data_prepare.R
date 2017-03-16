@@ -51,7 +51,190 @@ View(test_set)
 
 
 
+######
+######  KDD Tutorial
+######  session 4 - Knowledge Discovery
+######
+
+# remove environment varibles 
+#all
+rm(list = ls())
+#one
+rm(x)
+#load in data from csv
+data <- read.csv("C:/Users/t00175569/Desktop/r_work/DeerHunter.csv",header = T)
+#show the 'head' of the data, first 6 rows
+head(data)
 
 
+######
+######  K means Clustering in R example Iris Data
+######  session 3 - Dataming Techniques
+######
+ 
+## this tut above is included in one below!
+## except for graphing part
 
 
+######
+######  K means Clustering
+######  session 3 - Dataming Techniques
+######
+
+#iris data is build into R
+head(iris)
+#see label/column names
+names(iris)
+
+#assign our 'features' to x
+#,-5 means everything but column 5
+x <- iris[,-5]
+#assign our 'class' to y
+y <- iris$Species
+
+#make our kmeans model
+#we pick how many clusters for our kmeans
+#we use 3 because we know there are 3 spieces of iris i.e- we have 3 classes
+kc <- kmeans(x,3)
+#view our model
+kc
+#they put into table to see how many errors/missing data and compare to classes in iris data, not sure how??
+table(y,kc$cluster)
+
+#plot results
+plot(x[c("Sepal.Length", "Sepal.Width")], col=kc$cluster)
+points(kc$centers[,c("Sepal.Length", "Sepal.Width")], col=1:3, pch=23, cex=3)
+
+
+######
+######   part II - Forensic Glass
+######
+
+# this is another dataset build into R
+#assign data
+data <- MASS::fgl
+# check out the head of the data
+head(data)
+
+### copy process of Iris
+#assign features
+x <- data[,-10]
+#assign class
+y <- data$type
+# create kmeans model, 6 classes (6 different types of classes)
+unique(data$type)
+kc <- kmeans(x,6)
+
+#trying to count how many I have of each
+winf <- data$type == 'WinF'
+sum(winf)
+winnf <- data$type == 'WinNF'
+sum(winnf)
+veh <- data$type == 'Veh'
+sum(veh)
+con <- data$type == 'Con'
+sum(con)
+tabl <- data$type == 'Tabl'
+sum(tabl)
+head_gl <- data$type == 'Head'
+sum(head_gl)
+sum(winf)+sum(winnf)+sum(veh)+sum(con)+sum(tabl)+sum(head_gl)
+
+#they put into table to see how many errors/missing data and compare to classes. they are all there
+table(y,kc$cluster)
+### end my copying of iris, from here its back to the tutorial given
+
+##taken straight from lab
+#### ******* Forensic Glass ****** ####
+library(textir) ## needed to standardize the data
+library(MASS) ## a library of example data sets
+data(fgl) ## loads the data into R; see help(fgl)
+fgl
+## data consists of 214 cases
+## here are illustrative box plots of the features
+## stratified by glass type
+par(mfrow=c(3,3), mai=c(.3,.6,.1,.1))
+plot(RI ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Al ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Na ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Mg ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Ba ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Si ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(K ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Ca ~ type, data=fgl, col=c(grey(.2),2:6))
+plot(Fe ~ type, data=fgl, col=c(grey(.2),2:6))
+
+## for illustration, consider the RIxAl plane
+## use nt=200 training cases to find the nearest neighbors for
+## the remaining 14 cases. These 14 cases become the
+## evaluation (test, hold-out) cases
+n=length(fgl$type)
+nt=200
+set.seed(1)
+## to make the calculations reproducible in repeated runs
+train <- sample(1:n,nt)
+length(train)
+
+## Standardization of the data is preferable, especially if
+## units of the features are quite different
+## could do this from scratch by calculating the mean and
+## standard deviation of each feature, and use those to
+## standardize.
+## Even simpler, use the normalize function in the R-package
+## textir; it converts data frame columns to mean 0 and sd 1
+x <- normalize(fgl[,c(4,1)])
+x[1:3,]
+##########This function doesn't work so I'm trying with scale
+# we are using only column 4 and 1
+x <- scale(fgl[,c(4,1)])
+x
+library(class)
+nearest1 <- knn(train=x[train,],test=x[-train,],cl=fgl$type[train],k=1)
+nearest5 <- knn(train=x[train,],test=x[-train,],cl=fgl$type[train],k=5)
+data.frame(fgl$type[-train],nearest1,nearest5)
+
+## plot them to see how it worked on the training set
+par(mfrow=c(1,2))
+## plot for k=1 (single) nearest neighbor
+plot(x[train,],col=fgl$type[train],cex=.8,main="1-nearest neighbor")
+points(x[-train,],bg=nearest1,pch=21,col=grey(.9),cex=1.25)
+## plot for k=5 nearest neighbors
+plot(x[train,],col=fgl$type[train],cex=.8,main="5-nearest neighbors")
+points(x[-train,],bg=nearest5,pch=21,col=grey(.9),cex=1.25)
+
+## calculate the proportion of correct classifications on this one
+## training set
+pcorrn1=100*sum(fgl$type[-train]==nearest1)/(n-nt)
+pcorrn5=100*sum(fgl$type[-train]==nearest5)/(n-nt)
+#show
+pcorrn1
+pcorrn5
+## cross-validation (leave one out)
+pcorr=dim(10)
+for (k in 1:10) {
+  pred=knn.cv(x,fgl$type,k)
+  pcorr[k]=100*sum(fgl$type==pred)/n
+}
+pcorr
+
+## Note: Different runs may give you slightly different results as
+## ties are broken at random
+## using all nine dimensions (RI plus 8 chemical concentrations)
+x <- scale(fgl[,c(1:9)])
+nearest1 <- knn(train=x[train,],test=x[-train,],cl=fgl$type[train],k=1)
+nearest5 <- knn(train=x[train,],test=x[-train,],cl=fgl$type[train],k=5)
+data.frame(fgl$type[-train],nearest1,nearest5)
+## calculate the proportion of correct classifications on this one
+## training set
+pcorrn1=100*sum(fgl$type[-train]==nearest1)/(n-nt)
+pcorrn5=100*sum(fgl$type[-train]==nearest5)/(n-nt)
+pcorrn1
+pcorrn5
+
+## cross-validation (leave one out)
+pcorr=dim(10)
+for (k in 1:10) {
+  pred=knn.cv(x,fgl$type,k)
+  pcorr[k]=100*sum(fgl$type==pred)/n
+}
+pcorr
