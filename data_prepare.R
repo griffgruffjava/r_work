@@ -247,4 +247,86 @@ pcorr
 ######  - Wisconsin Breast Cancer dataset
 ######
 ######
+loc <- "http://archive.ics.uci.edu/ml/machine-learning-databases/"
+ds <- "breast-cancer-wisconsin/breast-cancer-wisconsin.data"
+url <- paste(loc, ds, sep = "")
+breast <-read.table(url, sep = ",", header = F, na.strings = "?")
+head(breast)
+View(breast)
+#show names of columns
+names(breast)
+#change name of columns
+names(breast) <- c("ID", "clumpThickness", "sizeUniformity", "shapeUniformity",
+                   "maginalAdhesion", "singleEpithelialCellSize", "bareNuclei",
+                   "blanChromation", "normalNucleoli", "mitosis", "class")
+#put all data except ID(col 1) into new var df
+df <- breast[-1]
+View(df)
+# factorize the class column, change from 2&4 to benign&malignant
+df$class <- factor(df$class, levels = c(2,4),
+                   labels = c("benign", "malignant"))
+#set a random seed
+set.seed(1234)
+# break our data into train and test
+train <- sample(nrow(df), 0.7*nrow(df))
+df.train <- df[train,]
+df.validate <- df[-train,]
+#create a table using the training sets class column
+table(df.train$class)
+# and for the testing data
+table(df.validate$class)
+#use rpart to grow tree
+library(rpart)
+set.seed(1234)
+dtree <- rpart(class ~ .,
+               data = df.train,
+               method = "class",
+               parms = list(split = "information"))
+prp(dtree, 
+    type = 2,
+    extra = 104)
+#one of the attriutes is a cptable -a matrix of information on the optimal prunings based on a complexity parameter
+dtree$cptable
+# see other object proberties of varibles
+names(dtree)
+#examine the result of the given tree using print or summery, summery is much more detailed
+summary(dtree)
+print(dtree)
 
+#plots the cross-validated error against complexity param- good is smallest tree whose cross
+# validated error is within one standard dev
+plotcp(dtree)
+library(rpart.plot)
+#prune the tree
+dtree.pruned <- prune(dtree, cp = .0125)
+# plot the tree
+prp(dtree.pruned, 
+    type = 2,
+    extra = 104,
+    fallen.leaves = T,
+    main = "Decision Tree")
+
+dtree.pred <- predict(dtree.pruned,
+                      df.validate,
+                      type = "class")
+dtree.perf <- table(df.validate$class,
+                    dtree.pred,
+                    dnn = c("Actual", "Predicated"))
+dtree.perf
+
+#now putting the data into a conditional inference tree
+install.packages("party")
+library(party)
+fit.ctree <- ctree(class~.,
+                   data = df.train)
+plot(fit.ctree,
+     main = "Conditional Inference Tree")
+
+#apply to the test data and check results
+ctree.pred <- predict(fit.ctree, 
+                      df.validate,
+                      type = "response")
+ctree.perf <- table(df.validate$class, 
+                    ctree.pred,
+                    dnn = c("Actual", "Predicted"))
+ctree.perf
