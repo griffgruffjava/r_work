@@ -330,3 +330,77 @@ ctree.perf <- table(df.validate$class,
                     ctree.pred,
                     dnn = c("Actual", "Predicted"))
 ctree.perf
+
+
+
+######
+######  Association Rules Learning and the Apiori Algorithm 
+######  session 3 - Dataming Techniques
+######  
+
+install.packages("arules")
+library(arules)
+install.packages("arulesViz")
+library(arulesViz)
+
+#generate some random data points
+patterns <- random.patterns(nItems = 1000)
+#get a summary
+summary(patterns)
+
+trans = random.transactions(nItems = 1000,
+                            nTrans = 1000,
+                            method = "agrawal",
+                            patterns = patterns)
+#create image of data
+image(trans)
+
+#load in dataset build into R
+data("AdultUCI")
+Adult <- as(AdultUCI, "transactions")
+# last cmd did not work
+# error msg -> column(s) 1, 3, 5, 11, 12, 13 not logical or a factor. Discretize the columns first.
+# so trying below to solve 
+AdultUCI$age <-discretize(AdultUCI$age)
+AdultUCI[,3] <- discretize(AdultUCI[,3])
+AdultUCI[,5] <- discretize(AdultUCI[,5])
+AdultUCI[,11] <- discretize(AdultUCI[,11])
+AdultUCI[,12] <- discretize(AdultUCI[,12])
+AdultUCI[,13] <- discretize(AdultUCI[,13])
+#don;t think that did it so will try below
+Adult <- as(AdultUCI[,c(2,4,6,7,8,9,10,14,15)], "transactions")
+
+rules = apriori(Adult,
+                parameter = list(support = 0.01, confidence = 0.5))
+
+rules
+
+inspect(head(sort(rules, by="lift"),3))
+
+plot(rules)
+
+head(quality(rules))
+
+plot(rules,
+     measure = c("support", "lift"),
+     shading = "confidence")
+
+plot(rules,
+     shading = "order",
+     control = list(main = "Two-key plot"))
+
+sel = plot(rules, measure = c("support", "lift"),
+           shading = "confidence",
+           interactive = TRUE)
+
+subrules = rules[quality(rules)$confidence > 0.8]
+subrules
+
+plot(subrules, method = "matrix", measure = "lift")
+plot(subrules, method = "matrix", measure = "lift", control = list(reorder = TRUE))
+plot(subrules, method = "matrix3D", measure = "lift")
+plot(subrules, method = "matrix3D", measure = "lift", control = list(reorder = TRUE))
+plot(subrules, method = "matrix", measure = "confidence")
+plot(subrules, method = "matrix", measure = "confidence", control = list(reorder = TRUE))
+plot(rules, method = "grouped")
+plot(rules, method = "grouped", control = list(k=50))
