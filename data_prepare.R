@@ -404,3 +404,41 @@ plot(subrules, method = "matrix", measure = "confidence")
 plot(subrules, method = "matrix", measure = "confidence", control = list(reorder = TRUE))
 plot(rules, method = "grouped")
 plot(rules, method = "grouped", control = list(k=50))
+
+
+######
+######  Association Rules 
+######  session 3 - Dataming Techniques
+######   -Titanic data
+
+# check working dir
+getwd()
+# set wd
+setwd("C:/Users/Finbar/Desktop/r_work")
+# look at first 5 lines of file  !!this did not produce same as labsheet
+readLines("./titanic.raw.rdata", n=5)
+ 
+# read in table to R
+titanic.raw <- read.table("./titanic.raw.rdata", 
+                          header = F)
+names(titanic.raw) <- c("Class", "Sex", "Age", "Survived")
+summary(titanic)
+View(titanic.raw)
+
+ data("Titanic")
+View(Titanic)
+keeps <- c("Class", "Sex", "Age", "Survived")
+Titanic[keeps]
+
+f <- function(x){x+1}
+v <- c(1,2,3)
+f(v)
+
+
+View(Titanic)
+summary(titanic.raw)
+View(titanic.raw)
+typeof(Titanic)
+names(Titanic)
+datasets::Titanic
+titanic.raw <- datasets::Titanic
