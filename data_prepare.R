@@ -95,7 +95,7 @@ y <- iris$Species
 #make our kmeans model
 #we pick how many clusters for our kmeans
 #we use 3 because we know there are 3 spieces of iris i.e- we have 3 classes
-kc <- kmeans(x,3)
+kc <- kmeans(x,3) 
 #view our model
 kc
 #they put into table to see how many errors/missing data and compare to classes in iris data, not sure how??
@@ -442,3 +442,150 @@ typeof(Titanic)
 names(Titanic)
 datasets::Titanic
 titanic.raw <- datasets::Titanic
+
+
+
+######
+######  Regression Analysis 
+######  session 5 - Exploring and Understanding Data
+######   -Iris data
+######
+
+#put iris data into obj called data
+data <- iris
+#change col names to....
+colnames(data) <- c("sepal_length", "sepal_width", "petal_length",
+                    "petal_width", "species")
+#look at the head
+head(data)
+#check out the summary
+summary(data)
+#take a look at the plots to see which fields seem to corilate
+plot(data)
+#try petal length vs pedal width
+cor(data$petal_length,data$petal_width)
+#corrilation is same if reversed
+cor(data$petal_width,data$petal_length)
+#determine the regression between the two
+fit <- lm(data$petal_length ~ data$petal_width)
+fit
+plot(fit)
+residuals(fit)
+summary(fit)
+
+#remove the iris-setosa from the dataframe
+data2<- subset(data, data$species!='setosa')
+warnings(data2)
+head(data2)
+View(data2)
+#we see now that the 2nd cluster in lenght ~ width is gone but remaining data is more spread
+plot(data2)
+#lets look at the correlation again
+cor(data2$petal_length,data2$petal_width)
+fit <- lm(data2$petal_length ~ data2$petal_width)
+summary(fit)
+
+
+######
+######  Exploring	and	understanding	data (regression)
+######  session 5 - Exploring and Understanding Data
+######   -Used Car Data
+######
+
+#set working directory
+setwd("C:/Users/Finbar/Desktop/r_work")
+#bring in data
+usedcars <- read.csv("usedcars.csv", 	stringsAsFactors	=	FALSE)
+
+#lets to some primary investagation
+# first look at the structure of the data
+str(usedcars)
+
+#Exploring	numeric	variables
+summary(usedcars$year)
+#We	can	also	use	the	summary()	function	to	obtain	summary	statistics	for	several numeric	variables	at	the	same	time:
+summary(usedcars[c("price",	"mileage")])
+
+#get the range- highest and lowest values
+range(usedcars$price)
+#find the difference in range
+diff(range(usedcars$price))
+#difference	between	Q1 and	Q3	is	known	as	the	Interquartile	Range	(IQR)
+IQR(usedcars$price)
+#find the quantiles
+quantile(usedcars$price)
+#or find specific percentiles 
+quantile(usedcars$price,	probs	=	c(0.01,	0.99))
+# or find like this for quintiles
+quantile(usedcars$price,	seq(from	=	0,	to	=	1,	by	=	0.20))
+quantile(usedcars$price,	seq(from	=	0,	to	=	1,	by	=	0.33))
+#create boxplots to visualize the quantiles
+boxplot(usedcars$price,	main="Boxplot	of	Used	Car	Prices",
+        ylab="Price	($)")
+#thick black line is median, top edge of block is Q3, bottom edge is Q1, 
+# wiskers (top and bottom lines) are the min and max but set to 1.5 the IQR, dots are outliers 
+boxplot(usedcars$mileage,	main="Boxplot	of	Used	Car	Mileage",
+        ylab="Odometer	(mi.)")
+# now lets do histograms
+hist(usedcars$price,	main	=	"Histogram	of	Used	Car	Prices", xlab	=	"Price	($)")
+hist(usedcars$mileage,	main	=	"Histogram	of	Used	Car	Mileage", xlab	=	"Odometer	(mi.)")
+#price is normal distribution (most values in middle)
+# left skewed(high bump on right side)
+#milage is right skewed (high bump on left side)
+
+#Measuring	spread	- variance	and	standard deviation
+#varience
+#While	interpreting	the	variance,	larger	numbers	indicate	that	the	data	are	spread more	widely	around	the	mean
+var(usedcars$price)
+var(usedcars$mileage)
+#standard deviation
+#	standard	deviation	indicates,	on	average,	how much	each	value	differs	from	the	mean.
+sd(usedcars$price)
+sd(usedcars$mileage)
+
+#Exploring	categorical	variables
+#table	that	presents	a	single	categorical	variable	is	known as	a	one-way	table
+table(usedcars$year)
+table(usedcars$model)
+table(usedcars$color)
+
+#lets look at proportion
+model_table	<- table(usedcars$model)
+#this will show as decimal 
+prop.table(model_table)
+#this will show as percentage rounded off
+color_table	<- table(usedcars$color)
+color_pct	<- prop.table(color_table)	*	100
+round(color_pct,	digits	=	1)
+View(color_pct)
+View(color_table)
+
+#my attempt at pie chart
+# Pie Chart with Percentages
+slices <- color_table
+names <- names(color_table)
+values <- color_table[1:9]
+lbls <- names
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels 
+lbls <- paste(lbls,"%",sep="") # ad % to labels 
+pie(slices,labels = lbls, 
+    #col=rainbow(length(lbls)),
+    main="Car Colours")
+
+
+#Measuring	the	central	tendency	- the	mode
+
+#scatterplot for bivarate data
+# y is the varible that is changed by x - the dependent varible
+plot(x	=	usedcars$mileage,	
+      y	=	usedcars$price,
+      main	=	"Scatterplot of Price vs Mileage",
+      xlab	=	"Used Car Odometer (mi.)",
+      ylab	=	"Used Car Price($)")
+#the trend is y decreases as x increases(the line slopes down as it goes right)
+# this is called negative	association
+# The	strength	of	a	linear	association	between	two	variables	is
+# measured	by	a	statistic	known	as	correlation.
+cor(usedcars$mileage,	
+    usedcars$price)
